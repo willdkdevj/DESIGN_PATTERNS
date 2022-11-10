@@ -100,7 +100,7 @@ Foi criada uma classe abstrata de Desconto onde ela tem o modelo que as demais c
 ```java
 
 public abstract claass Desconto {
-    private Desconto proximoDesconto;
+    public Desconto proximoDesconto;
 
     public Desconto(Desconto desconto){
         this.proximoDesconto = desconto;
@@ -110,8 +110,64 @@ public abstract claass Desconto {
 }
 ```
 Observe que existe um método abstrato, isso significa que toda classe que herdar de Desconto precisará implementar o método conforme sua necessidade.
+Desta forma, a classe para responsável por calcular os descontos ficará da seguinte maneira.
 
+```java
+public class CalculadoraDeDescontos {
 
+    public BigDecimal calcular(Orcamento orcamento){
+        Desconto desconto= new DescontoMaiorQueCincoItens(
+                new DescontoMaiorQueQuinhentos(
+                        new SemDesconto()));
+
+        return desconto.calcular(orcamento);
+    }
+}
+```
+Desta forma, diferente do Strategy que foi utilizado a *CalculadoraDeImpostos*, não está explicita a regra a ser aplicada. Então foi necessário validar cada uma das regras a fim de aplica-la ou não. Essa que é a ideia do padrão **Chain Of Responsibility**.
+
+Mas mesmo com esta melhoria ficou com um cara que ainda é possível melhorar este código! Mas como? Vocês notaram que as classes responsáveis por validaremm a regra de desconto seguem  o mesmo padrão de avaliação (com **IF**)? 
+
+É possível passar desta maneira este processo de validação para a classe que serve de modelo para as regras de descontro, só será necessário modifica-la um pouco.
+```java
+public abstract class Desconto {
+        public Desconto proximoDesconto;
+
+    public Desconto(Desconto desconto){
+        this.proximoDesconto = desconto;
+    }
+    public BigDecimal calcular(Orcamento orcamento){
+        if(checarRegra(orcamento)){
+            return validarCalcular(orcamento);
+        }
+        return proximoDesconto.calcular(orcamento);
+    }
+
+    protected abstract BigDecimal efetuarDesconto(Orcamento orcamento);
+    public abstract boolean checarRegra(Orcamento orcamento);
+}
+```
+
+Agora sim, a classe é um modelo para as demais que irão extende-la caso seja necessário a criação de mais regras para descontos, onde o método que responsável por validar a regra [checarRegra] e o método responsável por efetuar o cálculo de descontro [efetuarDesconto] estão disponíveis para que as classes filhas a implementem, onde o método calcular agora é um modelo de calculo que aplicará esta validação. Este é outro padrão conhecido como **Template Method**.
+
+Desta forma, as classes filhas ficarão da seguinte forma.
+```java
+public class DescontoMaiorQueCincoItens extends Desconto {
+    public DescontoMaiorQueCincoItens(Desconto proximoDesconto) {
+        super(proximoDesconto);
+    }
+
+    @Override
+    public BigDecimal validarCalcular(Orcamento orcamento) {
+            return orcamento.getValor().multiply(new BigDecimal("0.06"));
+    }
+
+    @Override
+    public boolean checarRegra(Orcamento orcamento) {
+        return orcamento.getQtdItens() > 5;
+    }
+}
+```
 
 
 ## Agradecimentos
