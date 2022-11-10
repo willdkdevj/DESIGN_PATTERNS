@@ -5,7 +5,7 @@
 [![Design Badge](https://img.shields.io/badge/-GitHub-blue?style=flat-square&logo=GitHub&logoColor=white&link=https://refactoring.guru/design-patterns)](https://refactoring.guru/design-patterns)
 
 
-<img align="right" width="400" height="300" src="https://github.com/willdkdevj/DESIGN_PATTERNS/blob/master/assets/designer.png">
+<img align="right" width="300" height="450" src="https://github.com/willdkdevj/DESIGN_PATTERNS/blob/master/assets/designer.png">
 
 ## Descrição da Aplicação
 A aplicação consiste em um simples projeto que implementa uma calculadora para fins tributários de uma empresa, na qual necessita administrar orçamentos cadastros e como ficariam os cálculos tributários a partir deles.
@@ -65,6 +65,51 @@ public class CalculadoraDeImpostos {
 }
 ```
 O Strategy é indicado quando temos um parâmetro e já sabemos que aquela regra vai ser aplicada, sendo o parâmetro determinante para a estratégia a ser utilizada.
+
+Agora o negócio pode surgir com novas regras para tratar de descontos a serem aplicados nos orçamentos. Onde conforme a quantidade ou o valor a ser gasto seja aplicado um desconto ao orçamento. Poderiamos entrar novamente na questão de utilizar o **IF** para verificar a condicional da regra e realizar o cáculo, ficando algo como o código abaixo
+```java
+public class CalculadoraDeDescontos {
+    
+    public BigDecimal calcular(Orcamento orcamento){
+        if(orcamento.getQtdItens() > 5){
+            return orcamento.getValor().multiply(new BigDecimal("0.1"));
+        }
+
+        if(orcamento.getValor().compareTo(new BigDecimal("500")) > 0){
+            return orcamento.getValor().multiply(new BigDecimal("0.1"));
+        }
+        
+        return BigDecimal.ZERO;
+    }
+}
+```
+Funcionaria sem problemas, mas entrariamos naquele dilema: "E se entrar mais regras de negócios?". Ficaria um método imenso díficil de administrar. Desta forma, poderiamos pensar em utilizar o conceito da **Strategy**, mas aqui a definição não está clara se é para aplicar somente um desconto ou conforme o orçamento se enquadre a regra conforme ele vai as validando se é para aplicar o desconto. Então, seria uma validação em cascata a ser realizada, neste contexto entra a sub-categoria **Chain of Responsability**.
+
+Foi utilizado o contexto similar ao *Strategy*, mas ao invés de aplicar somente a regra, foi inserido cada **if** em um método em classes isoladas, seguindo o Single Responsability [SOLID]. Desta forma, podemos instanciar a classe e invocar o método para obter o valor do desconto.
+```java
+    public BigDecimal calcular(Orcamento orcamento){
+        BigDecimal desconto = new CalcularValorDeDescontoAcimaDeCinco(orcamento);
+        desconto.add(new CalcularValorDeDescontoParaCompraAcimaQuinhentos(orcamento));
+
+        return desconto;
+    }
+```
+Notem que acabamos com aquela cadeia de IFs que poderia deixar o código díficil de entender, mas é possível melhorar. Como? Criando uma classe modelo a fim de todas as demais regras de descontos a sigam a fim de padronizar esta entrada através de **Classe Abstrata**.
+
+Foi criada uma classe abstrata de Desconto onde ela tem o modelo que as demais classes precisam seguir. Segue abaixo:
+```java
+
+public abstract claass Desconto {
+    private Desconto proximoDesconto;
+
+    public Desconto(Desconto desconto){
+        this.proximoDesconto = desconto;
+    }
+
+    public abstract BigDecimal calcular(Orcamento orcamento);
+}
+```
+Observe que existe um método abstrato, isso significa que toda classe que herdar de Desconto precisará implementar o método conforme sua necessidade.
 
 
 
