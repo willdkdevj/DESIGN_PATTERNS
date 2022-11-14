@@ -169,6 +169,12 @@ public class DescontoMaiorQueCincoItens extends Desconto {
 }
 ```
 
+Outro cenário pode surgir como regra de negócio, a possibilidade de fornecer mais um desconto caso o cliente insista em obte-lo. Mas para este desconto o orçamento do cliente deve estar em um estado que permita avaliar qual percentual aplicar.
+O padrão que será aplicado neste contexto é o **State**, que também é muito similar ao *Strategy*, mas o que difere é que para ser aplicada determinadda condição será avaliado o estado em que encontra um determminado processo. Vamos ao exemplo:
+```java
+
+``` 
+
 
 ## Agradecimentos
 Obrigado por ter acompanhado aos meus esforços em aplicar os conceitos do Design Patterns ao Projeto :octocat:
