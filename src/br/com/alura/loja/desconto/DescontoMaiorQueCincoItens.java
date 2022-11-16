@@ -1,6 +1,5 @@
 package br.com.alura.loja.desconto;
 
-import br.com.alura.loja.model.Desconto;
 import br.com.alura.loja.model.Orcamento;
 
 import java.math.BigDecimal;

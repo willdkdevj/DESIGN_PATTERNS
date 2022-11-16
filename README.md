@@ -170,10 +170,95 @@ public class DescontoMaiorQueCincoItens extends Desconto {
 ```
 
 Outro cenário pode surgir como regra de negócio, a possibilidade de fornecer mais um desconto caso o cliente insista em obte-lo. Mas para este desconto o orçamento do cliente deve estar em um estado que permita avaliar qual percentual aplicar.
-O padrão que será aplicado neste contexto é o **State**, que também é muito similar ao *Strategy*, mas o que difere é que para ser aplicada determinadda condição será avaliado o estado em que encontra um determminado processo. Vamos ao exemplo:
+O padrão que será aplicado neste contexto é o **State**, que também é muito similar ao *Strategy*, mas o que difere é que para ser aplicada determinada condição será avaliado o estado em que encontra um determminado processo. Vamos ao exemplo:
 ```java
+public class ValidadoraDeDescontosExtras {
 
+    public BigDecimal aplicarDescontoExtra(Orcamento orcamento, Situacao situacao){
+        return situacao.calcularValorDescontoExtra(orcamento);
+    }
+}
 ``` 
+ Esse padrão é utilizado em três tipos de situações, são elas:
+ * Existe uma transição de estado para outro;
+ * É necessário aplicar alguma regra;
+ * Execução de algum algoritmo baseado em um estado de um objeto.
+
+ Este padrão só pode ser aplicado quando existe um processo de transição de um estado para outro, que é o que ocorre nesta regra de negócio, onde a regra é a seguinte:
+ * Caso o orçamente esteja na situação "Em Análise" receberá 5% de desconto para efetivá-lo;
+ * Caso o orçamento esteja na situação "Aprovado" receberá 2% de descontro para efetivá-lo;
+ * Caso o orçamento esteja nas situações "Reprovado" ou "Finalizado" não terá desconto;
+
+ Desta forma, foi criada a classe Situação onde ela será abstrata, desta maneira, suas situações "filhas" terão suas caracteristicas, mas seus comportamento poderão ser diferente, entrando neste contexto o polimorfísmo e a sobreescrita de métodos que definirá o comportamento de cada estado.
+ ```java
+public abstract class Situacao {
+
+    public BigDecimal calcularValorDescontoExtra(Orcamento orcamento){
+        return BigDecimal.ZERO;
+    }
+
+    public void aprovar(Orcamento orcamento){
+        throw new ErrorException("Orcamento nao pode ser aprovado!");
+    }
+
+    public void reprovar(Orcamento orcamento){
+        throw new ErrorException("Orcamento nao pode ser reprovado!");
+    }
+
+    public void finalizar(Orcamento orcamento){
+        throw new ErrorException("Orcamento nao pode ser finalizado!");
+    }
+}
+ ```
+
+As classes filhas herdaram as características da *classe Pai* (Situacao), mas poderão alterar suas características comportamentais conforme sua própria caracteristica interna para representar um determinado estado.
+```java
+public class EmAnalise extends Situacao {
+    @Override
+    public BigDecimal calcularValorDescontoExtra(Orcamento orcamento){
+        return orcamento.getValor().multiply(new BigDecimal("0.05"));
+    }
+    @Override
+    public void aprovar(Orcamento orcamento){
+        orcamento.setSituacao(new Aprovado());
+    }
+
+    @Override
+    public void reprovar(Orcamento orcamento) {
+        orcamento.setSituacao(new Reprovado());
+    }
+}
+```
+>  Em Análise - Será aplicado o cálculo em cima do valor total do orçamento e ele pode ser remetido a aprovação;
+
+```java
+public class Aprovado extends Situacao {
+    @Override
+    public BigDecimal calcularValorDescontoExtra(Orcamento orcamento){
+        return orcamento.getValor().multiply(new BigDecimal("0.02"));
+    }
+
+    @Override
+    public void finalizar(Orcamento orcamento) {
+        orcamento.setSituacao(new Finalizado());
+    }
+}
+```
+>  Aprovado - Será aplicado o cálculo em cima do valor total do orçamento e ele pode ser remetido a conclusão;
+
+```java
+public class Reprovado extends Situacao{
+
+    @Override
+    public void finalizar(Orcamento orcamento) {
+        orcamento.setSituacao(new Finalizado());
+    }
+}
+```
+>  Em Análise - Será aplicado o cálculo em cima do valor total do orçamento e remetido a aprovação;
+
+Deste modo, é possível que um objeto [Orcamento] se comporte de forma diferente dependendo seu estado [Situacao], onde a mudança de estado determinará a ação a ser tomada. Este é o conceito utilizado pelo *State*.
+
 
 
 ## Agradecimentos

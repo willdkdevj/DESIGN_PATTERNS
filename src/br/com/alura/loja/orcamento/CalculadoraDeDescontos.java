@@ -3,7 +3,7 @@ package br.com.alura.loja.orcamento;
 import br.com.alura.loja.desconto.DescontoMaiorQueCincoItens;
 import br.com.alura.loja.desconto.DescontoMaiorQueQuinhentos;
 import br.com.alura.loja.desconto.SemDesconto;
-import br.com.alura.loja.model.Desconto;
+import br.com.alura.loja.desconto.Desconto;
 import br.com.alura.loja.model.Orcamento;
 
 import java.math.BigDecimal;
