@@ -29,6 +29,7 @@ Existem três principais categorias de padrões de projeto:
 ## Aplicação do Design Patterns no Projeto
 Cada uma destas categorias possuem seus próprios mecanismos, que são sub-categorias, que possuem funcionalidades distintas conforme a estrutura de código a ser implementada. 
 Neste projeto, eu utilizei somente a **Categoria Comportamental** a fim de deixar o código mais coeso e simples, na qual o primeiro a ser utilizado foi a sub-categoria **Strategy**.
+### State Pattern
 No cenário em que ela foi aplicada foi no contexto de vários impostos, como ICMS, ISS, entre outros, onde para cada imposto a uma alíquota a ser calculada. Desta forma, poderiamos criar um método que recebesse o orçamento e calculasse aliquota através de um ENUM que representaria o imposto. Mas veja, este método poderia ficar gigante, pois a cada novo imposto seria necessário incluir mais uma cadeia no **IF** ou **SWITCH**.
 
 Sempre que uma nova funcionalidade for implementada, o ideal é que possamos criar código novo e editar o mínimo possível de código já existente. Este é um dos principais pontos do princípio Aberto-Fechado *(Open-Closed Principle)* do **SOLID**. Ao editar código existente, podemos acabar quebrando funcionalidades já implementadas e funcionais.
@@ -66,6 +67,7 @@ public class CalculadoraDeImpostos {
 ```
 O Strategy é indicado quando temos um parâmetro e já sabemos que aquela regra vai ser aplicada, sendo o parâmetro determinante para a estratégia a ser utilizada.
 
+### Chain of Responsability Pattern
 Agora o negócio pode surgir com novas regras para tratar de descontos a serem aplicados nos orçamentos. Onde conforme a quantidade ou o valor a ser gasto seja aplicado um desconto ao orçamento. Poderiamos entrar novamente na questão de utilizar o **IF** para verificar a condicional da regra e realizar o cáculo, ficando algo como o código abaixo
 ```java
 public class CalculadoraDeDescontos {
@@ -147,7 +149,7 @@ public abstract class Desconto {
     public abstract boolean checarRegra(Orcamento orcamento);
 }
 ```
-
+### Template Method Pattern
 Agora sim, a classe é um modelo para as demais que irão extende-la caso seja necessário a criação de mais regras para descontos, onde o método que responsável por validar a regra [checarRegra] e o método responsável por efetuar o cálculo de descontro [efetuarDesconto] estão disponíveis para que as classes filhas a implementem, onde o método calcular agora é um modelo de calculo que aplicará esta validação. Este é outro padrão conhecido como **Template Method**.
 
 Desta forma, as classes filhas ficarão da seguinte forma.
@@ -168,7 +170,7 @@ public class DescontoMaiorQueCincoItens extends Desconto {
     }
 }
 ```
-
+### State Pattern
 Outro cenário pode surgir como regra de negócio, a possibilidade de fornecer mais um desconto caso o cliente insista em obte-lo. Mas para este desconto o orçamento do cliente deve estar em um estado que permita avaliar qual percentual aplicar.
 O padrão que será aplicado neste contexto é o **State**, que também é muito similar ao *Strategy*, mas o que difere é que para ser aplicada determinada condição será avaliado o estado em que encontra um determminado processo. Vamos ao exemplo:
 ```java
@@ -259,7 +261,23 @@ public class Reprovado extends Situacao{
 
 Deste modo, é possível que um objeto [Orcamento] se comporte de forma diferente dependendo seu estado [Situacao], onde a mudança de estado determinará a ação a ser tomada. Este é o conceito utilizado pelo *State*.
 
+### Command Pattern
+O conceito do **Command** se refere quando há um comando a ser executado pela estrutura de classes que será aplicado a outra aplicação, como salvar os dados no Banco de Dados, enviar um pedido por e-mail, encaminhar os dados para um webservice, entre outros. Desta forma, este padrão molda como deve ser a interface para a execução de comandos.
+Seguindo o exemplo, utilizaremos a criação de um pedido para este orçamento, na qual ele deverá ser enviado por e-mail e ser salvo no Banco de Dados, desta maneira, utilizaremos o conceito para criar a estrutura que realize este comando.
+```java
 
+```
+Um Command Handler tem como responsabilidade, normalmente, apenas orquestrar as tarefas a serem executadas, ou seja, chamar as classes necessárias que realizam as tarefas desejadas.
+
+### Observer Pattern
+O padrão **Observer** é comumente utilizado por diversas bibliotecas que trabalham com eventos. Muitas tecnologias em Java, como o Spring e o CDI, possuem componentes que nos auxiliam a trabalhar com eventos.
+Os benefícios em separarmos cada ação em classes distintas para tratativa de cada evento são:
+* Se em algum momento uma das tarefas parar de funcionar, nós sabemos que há uma classe específica para este propósito e podemos começar a depuração por ela;
+* Imagine que a ferramenta utilizada para enviar e-mails mude depois de alguns anos. O nosso Command Handler não precisa saber deste detalhe específico, então é interessante que cada classe seja responsável apenas por uma pequena tarefa.
+
+
+
+Como vimos, classes podem possuir dependências para realizar suas tarefas e a alternativa foi utilizar de abstrações para separar as responsabilidades a serem executadas. Inclusive, esse é um dos princípio de SOLID (Dependency Inversion Principle, a letra D). Devemos sempre preferir depender de abstrações, ou seja, interfaces ou classes abstratas, sempre que possível, ao invés de implementações específicas.
 
 ## Agradecimentos
 Obrigado por ter acompanhado aos meus esforços em aplicar os conceitos do Design Patterns ao Projeto :octocat:
