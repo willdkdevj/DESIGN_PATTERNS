@@ -279,6 +279,10 @@ Os benefícios em separarmos cada ação em classes distintas para tratativa de 
 
 Como vimos, classes podem possuir dependências para realizar suas tarefas e a alternativa foi utilizar de abstrações para separar as responsabilidades a serem executadas. Inclusive, esse é um dos princípio de SOLID (Dependency Inversion Principle, a letra D). Devemos sempre preferir depender de abstrações, ou seja, interfaces ou classes abstratas, sempre que possível, ao invés de implementações específicas.
 
+
+### Adapter Pattern
+Quando precisamos utilizar código legado ou código de componentes externos em nosso sistema, é muito comum não ter a interface (métodos públicos) batendo com o que a gente precisa, então nesses casos nós criamos adapters.
+
 ## Agradecimentos
 Obrigado por ter acompanhado aos meus esforços em aplicar os conceitos do Design Patterns ao Projeto :octocat:
 
