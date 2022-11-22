@@ -6,6 +6,8 @@ import br.com.alura.loja.model.Pedido;
 
 public class CRUD implements CommandHandler {
 
+    /* Injeção de Dependência de serviço de Banco de Dados */
+
     public void executar(Pedido pedido, CommandType type){
         switch (type){
             case CREATED:

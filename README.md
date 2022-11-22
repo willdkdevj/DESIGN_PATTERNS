@@ -265,16 +265,121 @@ Deste modo, é possível que um objeto [Orcamento] se comporte de forma diferent
 O conceito do **Command** se refere quando há um comando a ser executado pela estrutura de classes que será aplicado a outra aplicação, como salvar os dados no Banco de Dados, enviar um pedido por e-mail, encaminhar os dados para um webservice, entre outros. Desta forma, este padrão molda como deve ser a interface para a execução de comandos.
 Seguindo o exemplo, utilizaremos a criação de um pedido para este orçamento, na qual ele deverá ser enviado por e-mail e ser salvo no Banco de Dados, desta maneira, utilizaremos o conceito para criar a estrutura que realize este comando.
 ```java
+public class CriadorDePedido {
 
+    /* Injeção de Dependência de serviço de Banco de Dados */
+    /* Injeção de Dependência de serviço de Email */
+    
+    public static Pedido gerarPedido(Cliente cliente, Orcamento orcamento){
+        Pedido pedido = new Pedido(cliente, LocalDateTime.now(), orcamento);
+        executarEnvio(pedido);
+        executarCriacaoNoBD(pedido);
+        return pedido;
+    }
+
+    private static void executarEnvio(Pedido pedido){
+        /* Invocar o objeto injetado para chamar a função responsável por enviar email */
+        EnviarEmail enviarEmail = new EnviarEmail();
+        enviarEmail.executar(pedido, CommandType.EMAIL);
+    }
+    private static void executarCriacaoNoBD(Pedido pedido){
+        /* Invocar o objeto injetado para chamar a função responsável por salvar */
+        CRUD crud = new CRUD();
+        crud.executar(pedido, CommandType.CREATED);
+    }
+}
 ```
+
+A ideia por tras deste conceito é desvincular os comandos que serão executados por outras dependências a lógica que trata os dados obtidos pela a aplicação, desta forma, é abstraído 
 Um Command Handler tem como responsabilidade, normalmente, apenas orquestrar as tarefas a serem executadas, ou seja, chamar as classes necessárias que realizam as tarefas desejadas.
 
 ### Observer Pattern
+Observe que a cada nova ação de comando que for necessário utilizarmos a classe terá que realizar esta injeção e também criar um novo método para executar esta ação. Isto forçaria a nossa classe crescer infinitamente.
 O padrão **Observer** é comumente utilizado por diversas bibliotecas que trabalham com eventos. Muitas tecnologias em Java, como o Spring e o CDI, possuem componentes que nos auxiliam a trabalhar com eventos.
 Os benefícios em separarmos cada ação em classes distintas para tratativa de cada evento são:
 * Se em algum momento uma das tarefas parar de funcionar, nós sabemos que há uma classe específica para este propósito e podemos começar a depuração por ela;
 * Imagine que a ferramenta utilizada para enviar e-mails mude depois de alguns anos. O nosso Command Handler não precisa saber deste detalhe específico, então é interessante que cada classe seja responsável apenas por uma pequena tarefa.
+Então fazendo esta tratativa o código ficará da seguinte forma:
+```java
+public class CriadorDePedido {
 
+    private List<CommandHandler> commandList;
+
+    public CriadorDePedido(List<CommandHandler> list){
+        this.commandList = list;
+    }
+
+    public void gerarPedido(Cliente cliente, Orcamento orcamento, CommandType type){
+        Pedido pedido = new Pedido(cliente, LocalDateTime.now(), orcamento);
+        commandList.forEach(command -> {
+            command.executar(pedido, type);
+        });
+
+    }
+}
+```
+Agora as dependencias são tratadas em classes que execução ações especificas com suas respectivas injeções.
+```java
+public class CRUD implements CommandHandler {
+
+    /* Injeção de Dependência de serviço de Banco de Dados */
+
+    public void executar(Pedido pedido, CommandType type){
+        switch (type){
+            case CREATED:
+                executeSave(pedido);
+                break;
+            case READ:
+                executeRead(pedido);
+                break;
+            case UPDATED:
+                executeUpdate(pedido);
+                break;
+            case DELETE:
+                executeDelete(pedido);
+                break;
+            default:
+                throw new ErrorException("Não foi informado o comando correto!");
+        }
+    }
+
+    private void executeSave(Pedido pedido){
+        System.out.println("Salvar pedido");
+    }
+
+    private void executeRead(Pedido pedido){
+        System.out.println("Consultar pedido");
+    }
+
+    private void executeUpdate(Pedido pedido){
+        System.out.println("Atualizar pedido");
+    }
+
+    private void executeDelete(Pedido pedido){
+        System.out.println("Deletar pedido");
+    }
+}
+```
+> Classe responsável por executar tratativas ao banco de dados.
+
+```java
+public class EnviarEmail implements CommandHandler{
+
+    /* Injeção de Dependência de serviço de Email */
+
+    @Override
+    public void executar(Pedido pedido, CommandType type) {
+        if(type.equals(CommandType.CREATED) || type.equals(CommandType.DELETE)) {
+            executarEnvio(pedido);
+        }
+    }
+
+    private void executarEnvio(Pedido pedido){
+        System.out.println("Enviar email com os dados do pedido: " + pedido.toString());
+    }
+}
+```
+> Classe responsável por encaminhar e-mail sobre o processo realizado no banco de dados
 
 
 Como vimos, classes podem possuir dependências para realizar suas tarefas e a alternativa foi utilizar de abstrações para separar as responsabilidades a serem executadas. Inclusive, esse é um dos princípio de SOLID (Dependency Inversion Principle, a letra D). Devemos sempre preferir depender de abstrações, ou seja, interfaces ou classes abstratas, sempre que possível, ao invés de implementações específicas.
