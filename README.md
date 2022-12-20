@@ -386,7 +386,66 @@ Como vimos, classes podem possuir dependências para realizar suas tarefas e a a
 
 
 ### Adapter Pattern
-Quando precisamos utilizar código legado ou código de componentes externos em nosso sistema, é muito comum não ter a interface (métodos públicos) batendo com o que a gente precisa, então nesses casos nós criamos adapters.
+Quando precisamos utilizar código legado ou código de componentes externos em nosso sistema, é muito comum não existir uma interface (métodos públicos) batendo com o que a gente precisa, então nesses casos nós criamos esta adaptação para não misturarmos com o que estamos desenvolvendo e também, caso haja a necessidade, realizar a substituições destes componentes sem o risco de afetar nossa aplicação. Desta forma, o padrão adapter nos permite estruturar classes que funcionaram como intermediadores entre nossa aplicação e componentes externos.
+
+```java
+public interface HttpAdapter {
+    void post(String url, Map<String, Object> dados);
+}
+```
+Seguindo o exemplo para adaptar um componente externo, eu implementei um componente que será resposável por tratar as requisições **HTTP** chamado *HttpAdapter*, onde caso seja necessário é só alterar a biblioteca utilizada para realizar a comunicação.
+
+Já a implementação da classe responsável por realizar a conexão e tratar a chamada externa foi nomeada como *RegistroDeOrcamento*, na qual encaminhará os dados para o webservice parceiro.
+```java
+public class JavaHttpClient implements HttpAdapter {
+    @Override
+    public void post(String url, Map<String, Object> dados) {
+        try {
+            URL urlApi = new URL(url);
+            URLConnection connection = urlApi.openConnection();
+            connection.connect();;
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao enviar requisição ao webservice parceiro!");
+        }
+    }
+}
+```
+
+Agora só é preciso passar o adaptador a classe que realiza a tratativa com o componente externo realizando as tratativas necessárias para o tipo de requisição que está sendo chamada.
+
+```java
+public class RegistroDeOrcamento {
+
+    private HttpAdapter http;
+
+    public RegistroDeOrcamento(HttpAdapter http) {
+        this.http = http;
+    }
+
+    public void registrar(Orcamento orcamento){
+        verificaStatus(orcamento);
+        
+        String url = "http://api.externa.orcamento/";
+        Map<String, Object> dados = Map.of(
+                "valor", orcamento.getValor(),
+                "quantidadeItens", orcamento.getQtdItens()
+        );
+
+        http.post(url, dados);
+    }
+}
+```
+
+Desta maneira, podemos conectar qualquer tipo de componente sem necessariamente incorpora-lo ao código da aplicação, onde caso seja necessário é só substitui-lo ou modifica-lo sem o risco de quebrar a aplicação por haver qualquer tipo de dependência. Podendo estes componentes serem de Banco de Dados, bibliotecas REST, HTTP ou qualquer outro.
+
+### Decoration Pattern
+Quando precisamos informar mais de uma vez uma regra de negócio, onde precisamos realizar alguma operação com ambas ou mais regras do mesmo tipo podemos compor estas regras passando-as uma embutida na outra. Como se tivessemos a decorando com outra regra.
+Desta forma, ao invés de termos uma interface que orienta os padrões que as regras devem seguir, implementamos uma classe abstrata na qual realizaremos algumas implementações para realizar a operação necessária com os impostos passados para cálculo. Então, vamos a implementação.
+```java
+
+```
+
+
 
 ## Agradecimentos
 Obrigado por ter acompanhado aos meus esforços em aplicar os conceitos do Design Patterns ao Projeto :octocat:
