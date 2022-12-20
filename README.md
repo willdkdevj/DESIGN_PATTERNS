@@ -439,9 +439,9 @@ public class RegistroDeOrcamento {
 
 Desta maneira, podemos conectar qualquer tipo de componente sem necessariamente incorpora-lo ao código da aplicação, onde caso seja necessário é só substitui-lo ou modifica-lo sem o risco de quebrar a aplicação por haver qualquer tipo de dependência. Podendo estes componentes serem de Banco de Dados, bibliotecas REST, HTTP ou qualquer outro.
 
-### Decoration Pattern
+### Decorator Pattern
 Quando precisamos informar mais de uma vez uma regra de negócio, onde precisamos realizar alguma operação com ambas ou mais regras do mesmo tipo podemos compor estas regras passando-as uma embutida na outra. Como se tivessemos a decorando com outra regra.
-Desta forma, ao invés de termos uma interface que orienta os padrões que as regras devem seguir, implementamos uma classe abstrata na qual realizaremos algumas implementações para realizar a operação necessária com os impostos passados para cálculo. Então, vamos a implementação.
+Desta forma, ao invés de termos uma *interface* que orienta os padrões que as regras devem seguir, implementamos uma **classe abstrata** na qual realizaremos algumas implementações para realizar a operação necessária com os impostos passados para cálculo. Então, vamos a implementação.
 
 ```java
 public abstract class Imposto {
