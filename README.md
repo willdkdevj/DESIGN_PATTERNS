@@ -396,6 +396,7 @@ public interface HttpAdapter {
 Seguindo o exemplo para adaptar um componente externo, eu implementei um componente que será resposável por tratar as requisições **HTTP** chamado *HttpAdapter*, onde caso seja necessário é só alterar a biblioteca utilizada para realizar a comunicação.
 
 Já a implementação da classe responsável por realizar a conexão e tratar a chamada externa foi nomeada como *RegistroDeOrcamento*, na qual encaminhará os dados para o webservice parceiro.
+
 ```java
 public class JavaHttpClient implements HttpAdapter {
     @Override
@@ -441,11 +442,60 @@ Desta maneira, podemos conectar qualquer tipo de componente sem necessariamente 
 ### Decoration Pattern
 Quando precisamos informar mais de uma vez uma regra de negócio, onde precisamos realizar alguma operação com ambas ou mais regras do mesmo tipo podemos compor estas regras passando-as uma embutida na outra. Como se tivessemos a decorando com outra regra.
 Desta forma, ao invés de termos uma interface que orienta os padrões que as regras devem seguir, implementamos uma classe abstrata na qual realizaremos algumas implementações para realizar a operação necessária com os impostos passados para cálculo. Então, vamos a implementação.
-```java
 
+```java
+public abstract class Imposto {
+
+	private Imposto outro;
+
+	public Imposto(Imposto outro) {
+		this.outro = outro;
+	}
+
+	protected abstract BigDecimal realizarCalculo(Orcamento orcamento);
+	public BigDecimal calcular(Orcamento orcamento){
+		BigDecimal valorOutroImposto = BigDecimal.ZERO;
+		BigDecimal valorImposto = realizarCalculo(orcamento);
+
+		if(this.outro != null){
+			valorOutroImposto = outro.realizarCalculo(orcamento);
+		}
+		return valorImposto.add(valorOutroImposto);
+	}
+
+}
+```
+> Agora nas classes que implementavam (implements) a interface Imposto agora precisarão estender (extends) a classe abstrata Imposto e implementar seu método abstrato realizarCalculo.
+
+As classes que representam os Impostos ao estender a classe abstrata também são obrigadas a implementar o construtor para passagem, ou não, do(s) outro(s) imposto(s) que comporam a operação desejada. Segue o exemplo da classe ICMS.
+
+```java
+public class ICMS extends Imposto{
+
+	public ICMS(Imposto outro) {
+		super(outro);
+	}
+
+	public BigDecimal realizarCalculo(Orcamento orcamento) {
+		return orcamento.getValor().multiply(new BigDecimal("0.1"));
+	}
+
+}
 ```
 
+Desta forma, para utilizar mais de uma regra para fazer um cálculo (que é o objetivo esperado por esta implementação para realizar uma operação) passamos os impostos que sejamos calcular no construtor de cada imposto, onde caso não haja mais ou não seja necessário realizar tal composição informamos o valor nulo (null).
 
+```java
+public class TestesImpostos {
+
+    public static void main(String[] args) {
+        Orcamento orcamento = new Orcamento(new BigDecimal("500"), 1);
+        CalculadoraDeImpostos calculadoraDeImpostos = new CalculadoraDeImpostos();
+        System.out.println(calculadoraDeImpostos.calcular(orcamento, new ISS(new ICMS(null))));
+    }
+}
+```
+Então este é o padrão Decorators, ele é bem confuso, pois o termo de decoração não fica tão óbvio assim, mas foi o que eu entendi de seu funcionamento.
 
 ## Agradecimentos
 Obrigado por ter acompanhado aos meus esforços em aplicar os conceitos do Design Patterns ao Projeto :octocat:
